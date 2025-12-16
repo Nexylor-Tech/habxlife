@@ -1,65 +1,97 @@
-import Image from "next/image";
+'use client'
+import { useState, useEffect } from "react";
+import Navbar from "@/components/home/navbar/Navbar"
+import Footer from "@/components/home/footer/Footer"
+import AboutPage from "./about/page"
+import ContactPage from "./contact/page"
+import PrivacyPage from "./privacy/page"
+import TermsPage from "./terms/page"
+import { LandingPage } from "@/components/home/landing/Landing"
+import { ViewState } from "@/lib/types";
+export default function App() {
+    const getInitialView = (): ViewState => {
+        if (typeof window !== 'undefined') {
+            const hash = window.location.hash.slice(1);
+            const validViews: ViewState[] = ['home', 'about', 'contact', 'terms', 'privacy', 'signin', 'signup'];
+            return (validViews.includes(hash as ViewState)) ? hash as ViewState : 'home';
+        }
+        return 'home';
+    };
 
-export default function Home() {
-  return (
-    <div className="flex min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex min-h-screen w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
-      </main>
-    </div>
-  );
+    const [view, setViewState] = useState<ViewState>(getInitialView);
+
+    // Wrapper for setView that pushes state to history
+    const setView = (newView: ViewState) => {
+        if (newView === view) return;
+        setViewState(newView);
+        const path = newView === 'home' ? window.location.pathname : `#${newView}`;
+        window.history.pushState(null, '', path);
+    };
+
+    // Listen for back/forward navigation
+    useEffect(() => {
+        const handlePopState = () => {
+            setViewState(getInitialView());
+        };
+
+        window.addEventListener('popstate', handlePopState);
+        return () => window.removeEventListener('popstate', handlePopState);
+    }, []);
+
+    useEffect(() => {
+        // Inject Fonts
+        const link = document.createElement('link');
+        link.href = 'https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Caveat:wght@600&display=swap';
+        link.rel = 'stylesheet';
+        document.head.appendChild(link);
+
+        // Inject Custom Styles for animations
+        const style = document.createElement('style');
+        style.innerHTML = `
+      body { font-family: 'Plus Jakarta Sans', sans-serif; }
+      .font-handwriting { font-family: 'Caveat', cursive; }
+      @keyframes slide-up { from { transform: translateY(10px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+      @keyframes progress-grow { from { width: 0; } to { width: 75%; } }
+      @keyframes fade-in { from { opacity: 0; } to { opacity: 1; } }
+      @keyframes fade-in-up { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+      .animate-slide-up { animation: slide-up 0.5s ease-out forwards; }
+      .animate-progress-grow { animation: progress-grow 1.5s ease-out forwards; }
+      .animate-fade-in { animation: fade-in 0.5s ease-out forwards; }
+      .animate-fade-in-up { animation: fade-in-up 0.6s ease-out forwards; }
+      .animate-fade-in-delayed { animation: fade-in 0.5s ease-out 1s forwards; }
+      .delay-100 { animation-delay: 100ms; }
+      .delay-200 { animation-delay: 200ms; }
+      .delay-300 { animation-delay: 300ms; }
+      .delay-500 { animation-delay: 500ms; }
+    `;
+        document.head.appendChild(style);
+
+        // Initial scroll
+        window.scrollTo(0, 0);
+
+        return () => {
+            document.head.removeChild(link);
+            document.head.removeChild(style);
+        };
+    }, []); // Run once on mount for styles
+
+    // Scroll to top when view changes
+    useEffect(() => {
+        window.scrollTo(0, 0);
+    }, [view]);
+
+    return (
+        <div className="min-h-screen bg-white text-slate-900 selection:bg-emerald-100 selection:text-emerald-900">
+            <Navbar setView={setView} view={view} />
+
+            <main>
+                {view === 'home' && <LandingPage setView={setView} />}
+                {view === 'about' && <AboutPage />}
+                {view === 'contact' && <ContactPage />}
+                {view === 'terms' && <TermsPage />}
+                {view === 'privacy' && <PrivacyPage />}
+            </main>
+
+            <Footer setView={setView} />
+        </div>);
 }
